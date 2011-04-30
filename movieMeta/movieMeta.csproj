@@ -8,7 +8,7 @@
     <ProjectGuid>{77F7DB8C-E0BE-42D5-8EA1-FDEE6CB1C72F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WindowsFormsApplication1</RootNamespace>
+    <RootNamespace>movieMeta</RootNamespace>
     <AssemblyName>movieMeta</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -123,6 +123,18 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\uparrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\downarrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\uparrow1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\downarrow1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

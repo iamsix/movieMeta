@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WindowsFormsApplication1.Properties {
+namespace movieMeta.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace WindowsFormsApplication1.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WindowsFormsApplication1.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("movieMeta.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -67,6 +67,13 @@ namespace WindowsFormsApplication1.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap downarrow {
+            get {
+                object obj = ResourceManager.GetObject("downarrow", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap gobutton2 {
             get {
                 object obj = ResourceManager.GetObject("gobutton2", resourceCulture);
@@ -77,6 +84,13 @@ namespace WindowsFormsApplication1.Properties {
         internal static System.Drawing.Bitmap missing {
             get {
                 object obj = ResourceManager.GetObject("missing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap uparrow {
+            get {
+                object obj = ResourceManager.GetObject("uparrow", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

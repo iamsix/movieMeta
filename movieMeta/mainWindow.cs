@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 
-namespace WindowsFormsApplication1
+namespace movieMeta
 {
     public partial class mainWindow : Form
     {
@@ -25,7 +25,8 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
-           
+
+            MovieData.Tables[0].Clear();
 
             string path = "E:\\movies";
 
@@ -59,47 +60,62 @@ namespace WindowsFormsApplication1
             string[] directories = Directory.GetDirectories(path);
 
             // MovieList.DataSource = MovieData.Tables[0];
-            foreach (string di in directories)
+            foreach (string dir in directories)
             {
-                FileInfo fi = new FileInfo(di + "\\mymovies.dna");
+                FileInfo fi = new FileInfo(dir + "\\mymovies.dna");
                 //listView1.Items.Add(di);
                 string movieTitle = "";
                 string sortTitle = "";
                 string genreList = "";
-                bool xmlComplete = false;
+                int xmlComplete = 0;
 
                 if (fi.Exists)
                 {
                 }
                 else
                 {
-                    fi = new FileInfo(di + "\\mymovies.xml");
-                    if (fi.Exists)
+                    string filenames = String.Join(" ", Directory.GetFiles(dir));
+                    if (filenames.Contains(".avi") || filenames.Contains(".mkv") || filenames.Contains(".m4v"))
+
                     {
+                        fi = new FileInfo(dir + "\\folder.jpg");
+                        bool posterexists = fi.Exists;
+                        fi = new FileInfo(dir + "\\backdrop.jpg");
+                        bool backdropexists = fi.Exists;
                         //ok We're going to just flatten the entire thing, no subfolders.
                         //no code for subfolders yet...
+                        fi = new FileInfo(dir + "\\mymovies.xml");
+                        if (fi.Exists)
+                        {
+                            mmdata = new mymovies();
+                            mmdata.load(dir + "\\mymovies.xml");
 
-                        mmdata = new mymovies();
-                        mmdata.load(di + "\\mymovies.xml");
+                            movieTitle = mmdata.LocalTitle;
+                            sortTitle = mmdata.SortTitle;
 
-                        movieTitle = mmdata.LocalTitle;
-                        sortTitle = mmdata.SortTitle;
+                            xmlComplete = mmdata.XMLComplete ? 1 : 0;
+                            genreList = String.Join(";", mmdata.Genres.Genre.ToArray());
+                            
+                        }
+                        else
+                        {
+                            movieTitle = sortTitle = dir.Substring(dir.LastIndexOf("\\") + 1);
+                            Console.WriteLine(movieTitle);
+                            MovieList.Rows[MovieList.Rows.Count - 1].Cells[0].Style.ForeColor = Color.Red;
+                           
+                            xmlComplete = -1;
+                        }
 
-                        xmlComplete = mmdata.XMLComplete;
-                        genreList = String.Join(";", mmdata.Genres.Genre.ToArray());
+                        MovieData.Tables[0].Rows.Add(movieTitle, posterexists, backdropexists, dir, sortTitle, "", "", "", genreList, xmlComplete);
+                        //MovieList.Rows.Add(movieTitle, posterexists, backdropexists, di, sortTitle, "", "", "", genreList);
+
+                        
+                        //this tooltip needs to be more extensive
+                        //MovieList.Rows[MovieList.Rows.Count - 1].Cells[0].ToolTipText = dir;
+                        //if (xmlComplete) { MovieList.Rows[MovieList.Rows.Count - 1].Cells[0].Style.ForeColor = Color.Green; }
 
                     }
 
-                    fi = new FileInfo(di + "\\folder.jpg");
-                    bool posterexists = fi.Exists;
-                    fi = new FileInfo(di + "\\backdrop.jpg");
-                    bool backdropexists = fi.Exists;
-                    //MovieList.Rows.Add(movieTitle, posterexists, backdropexists, di, sortTitle, "", "", "", genreList);
-
-                    MovieData.Tables[0].Rows.Add(movieTitle, posterexists, backdropexists, di, sortTitle, "", "", "", genreList, xmlComplete);
-                    //this tooltip needs to be more extensive
-                    MovieList.Rows[MovieList.Rows.Count - 1].Cells[0].ToolTipText = di;
-                    if (xmlComplete) { MovieList.Rows[MovieList.Rows.Count - 1].Cells[0].Style.ForeColor = Color.Green; }
                 }
 
                 //mymovies mmdata = new mymovies(di + "\\mymovies.xml");
@@ -153,7 +169,10 @@ namespace WindowsFormsApplication1
                 }
                 foreach (string s in mmdata.Studios.Studio)
                 {
-                    Studios.Rows.Add(s);
+                   
+                    int row = Studios.Rows.Add(s);
+
+
                 }
                 foreach (mymovies.Person p in mmdata.Persons)
                 {
@@ -178,9 +197,9 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
-            //else 
-            //{ 
-            //}
+            else 
+            { 
+            }
             
 
             fi = new FileInfo(di + "\\folder.jpg");
@@ -253,10 +272,54 @@ namespace WindowsFormsApplication1
             mmdata.TMDbId = TMDBID.Text;
             mmdata.Description = Description.Text;
 
+            mmdata.Genres.Genre.Clear();
+            foreach (DataGridViewRow dgr in Genres.Rows)
+            {
+                if (((string)dgr.Cells[0].Value) != null)
+                {
+                    mmdata.Genres.Genre.Add((string)dgr.Cells[0].Value);
+                }
+            }
+
+            mmdata.Studios.Studio.Clear();
+            foreach (DataGridViewRow dgr in Studios.Rows)
+            {
+                if (((string)dgr.Cells[0].Value) != null)
+                {
+                    mmdata.Studios.Studio.Add((string)dgr.Cells[0].Value);
+                }
+            }
+
+            mmdata.Persons.Clear();
+            foreach (DataGridViewRow dgr in Directors.Rows)
+            {
+                if (((string)dgr.Cells[0].Value) != null)
+                {
+                    mymovies.Person p = new mymovies.Person();
+                    p.Name = (string)dgr.Cells[0].Value;
+                    p.Type = "Director";
+
+                    mmdata.Persons.Add(p);
+                }
+            }
+            foreach (DataGridViewRow dgr in Actors.Rows)
+            {
+                if (((string)dgr.Cells[1].Value) != null)
+                {
+                    mymovies.Person p = new mymovies.Person();
+                    p.Name = (string)dgr.Cells[1].Value;
+                    p.Type = "Actor";
+                    p.Role = (string)dgr.Cells[3].Value;
+
+                    mmdata.Persons.Add(p);
+                }
+            }
+
             mmdata.save();
-            currentrow.Cells[3].Value = mmdata.XMLComplete;
+            currentrow.Cells[3].Value = mmdata.XMLComplete ? 1 : 0;
             
         }
+
 
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
@@ -283,17 +346,17 @@ namespace WindowsFormsApplication1
             {
                 dr.Cells[0].ToolTipText = dr.Cells[4].Value.ToString();
                 switch ((string)dr.Cells[3].Value)
-                {
-                    case "True":
+                    {
+                    case "1":
                         dr.Cells[0].Style.ForeColor = Color.Green;
                         break;
-                    case "False":
+                    case "0":
                         dr.Cells[0].Style.ForeColor = Color.Black;
                         break;
-                    case "":
+                    default:
                         dr.Cells[0].Style.ForeColor = Color.Red;
                         break;
-                }
+                    }
             }
             MovieList.EndEdit();
         }
@@ -321,5 +384,88 @@ namespace WindowsFormsApplication1
 
         }
 
+        private void Directors_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void Simplereorderlist_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 1)
+            {
+                dgv_reorder((DataGridView)sender, e.RowIndex, "up");
+            }
+            if (e.ColumnIndex == 2)
+            {
+                dgv_reorder((DataGridView)sender, e.RowIndex, "down");
+            }
+        }
+
+        private void splitContainer4_Panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void dgv_reorder(DataGridView dgv, int row, String movetype)
+        {
+            DataGridViewRow dgr;
+            dgr = dgv.Rows[row];
+            if ((movetype == "up") && (row > 0))
+            {
+                dgv.Rows.RemoveAt(row);
+                dgv.Rows.Insert(row - 1, dgr);
+
+                dgv.Rows[row - 1].Selected = true;
+            }
+            if ((movetype == "down") && (row < dgv.Rows.Count - 2))
+            {
+                dgv.Rows.RemoveAt(row);
+                dgv.Rows.Insert(row + 1, dgr);
+
+                dgv.Rows[row + 1].Selected = true;
+            }
+        }
+
+        private void mainWindow_Load(object sender, EventArgs e)
+        {
+            //Image nullImage = 
+            //CustomImageColumn dgi = new CustomImageColumn();
+            //dgi.DefaultCellStyle.NullValue = nullImage;
+            //dgi.CellTemplate.Value = nullImage;
+            //dgi.DefaultCellStyle.BackColor = Color.Green;
+            //Studios.Columns.Add(dgi);
+            //Console.WriteLine(Studios[3, 0].Value);
+           
+
+        }
+
+        private void Actors_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 5)
+            {
+                dgv_reorder((DataGridView)sender, e.RowIndex, "up");
+            }
+            if (e.ColumnIndex == 6)
+            {
+                dgv_reorder((DataGridView)sender, e.RowIndex, "down");
+            }
+        }
+    }
+}
+
+public class CustomImageColumn : DataGridViewImageColumn
+{
+    public CustomImageColumn()
+    {
+        this.CellTemplate = new CustomImageCell();
+    }
+}
+
+public class CustomImageCell : DataGridViewImageCell
+{
+    Image nullImg = new System.Drawing.Bitmap(1, 1);
+    public override object DefaultNewRowValue
+    {
+        get { return nullImg; }
     }
 }

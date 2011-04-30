@@ -8,7 +8,7 @@ using System.IO;
 //using System.Xml.Serialization;
 
 
-namespace WindowsFormsApplication1
+namespace movieMeta
 {
 
    public class mymovies
@@ -27,7 +27,27 @@ namespace WindowsFormsApplication1
         public string LockData { get; set; }
         public string IMDB { get; set; }
         public string TMDbId { get; set; }
-        public bool XMLComplete;
+        public bool XMLComplete
+        {
+            get{
+                return LocalTitle != "" &&
+                    OriginalTitle != "" &&
+                    SortTitle != "" &&
+                    Added != "" &&
+                    ProductionYear != "" &&
+                    RunningTime != "" &&
+                    IMDBrating != "" &&
+                    MPAARating != "" &&
+                    Description != "" &&
+                    Type != "" &&
+                    AspectRatio != "" &&
+                    IMDB != "" &&
+                    TMDbId != "" &&
+                    Genres.Genre.Count != 0 &&
+                    Persons.Count != 0;
+            }
+
+        }
 
         public struct _Genres
         {
@@ -151,27 +171,6 @@ namespace WindowsFormsApplication1
                     Persons.Add(p);
                 }
             }
-           
-           XMLComplete = false;
-           if (LocalTitle != "" &&
-               OriginalTitle != "" &&
-               SortTitle != "" &&
-               Added != "" &&
-               ProductionYear != "" &&
-               RunningTime != "" &&
-               IMDBrating != "" &&
-               MPAARating != "" &&
-               Description != "" &&
-               Type != "" &&
-               AspectRatio != "" &&
-               IMDB != "" &&
-               TMDbId != "" &&
-               Genres.Genre.Count != 0 &&
-               Persons.Count != 0)
-           {
-               XMLComplete = true;
-           }
-           //doc.Save(path);
          
         }
 
@@ -265,26 +264,6 @@ namespace WindowsFormsApplication1
                     xmn["Role"].InnerText = p.Role;
                     doc.GetElementsByTagName("Persons")[0].AppendChild(xmn);
                 }
-            }
-
-            XMLComplete = false;
-            if (LocalTitle != "" &&
-                OriginalTitle != "" &&
-                SortTitle != "" &&
-                Added != "" &&
-                ProductionYear != "" &&
-                RunningTime != "" &&
-                IMDBrating != "" &&
-                MPAARating != "" &&
-                Description != "" &&
-                Type != "" &&
-                AspectRatio != "" &&
-                IMDB != "" &&
-                TMDbId != "" &&
-                Genres.Genre.Count != 0 &&
-                Persons.Count != 0)
-            {
-                XMLComplete = true;
             }
             
             using (FileStream fs = new FileStream(gpath, FileMode.Truncate))
