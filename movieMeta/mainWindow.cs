@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace movieMeta
 {
@@ -50,11 +51,9 @@ namespace movieMeta
         {
 
             /*TODO:
-             * I need to change this code so it looks for movie files instead of mymovies.xml files
-             * I also need to add some directory tripping code for subdirectories
+             * add some directory tripping code for subdirectories
              * and make it not add a folder that only exists to hold subdirectories
              * 
-             * Also I need to make it properly add directories WITHOUT the mymovies and 'red' them
              */
 
             string[] directories = Directory.GetDirectories(path);
@@ -67,6 +66,7 @@ namespace movieMeta
                 string movieTitle = "";
                 string sortTitle = "";
                 string genreList = "";
+                string movieYear = "";
                 int xmlComplete = 0;
 
                 if (fi.Exists)
@@ -92,6 +92,7 @@ namespace movieMeta
 
                             movieTitle = mmdata.LocalTitle;
                             sortTitle = mmdata.SortTitle;
+                            movieYear = mmdata.ProductionYear;
 
                             xmlComplete = mmdata.XMLComplete ? 1 : 0;
                             genreList = String.Join(";", mmdata.Genres.Genre.ToArray());
@@ -99,14 +100,18 @@ namespace movieMeta
                         }
                         else
                         {
-                            movieTitle = sortTitle = dir.Substring(dir.LastIndexOf("\\") + 1);
+                            movieTitle = dir.Substring(dir.LastIndexOf("\\") + 1);
                             Console.WriteLine(movieTitle);
+                            movieYear = Regex.Match(movieTitle, "\\(.*\\)").Groups[0].Value;
+                            movieTitle = Regex.Replace(movieTitle, "\\(.*\\)", "").Trim();
+                            movieTitle = Regex.Replace(movieTitle, "[.*]", "");
+                            sortTitle = movieTitle;
                             MovieList.Rows[MovieList.Rows.Count - 1].Cells[0].Style.ForeColor = Color.Red;
                            
                             xmlComplete = -1;
                         }
 
-                        MovieData.Tables[0].Rows.Add(movieTitle, posterexists, backdropexists, dir, sortTitle, "", "", "", genreList, xmlComplete);
+                        MovieData.Tables[0].Rows.Add(movieTitle, posterexists, backdropexists, dir, sortTitle, movieYear, "", "", genreList, xmlComplete);
                         //MovieList.Rows.Add(movieTitle, posterexists, backdropexists, di, sortTitle, "", "", "", genreList);
 
                         
@@ -147,60 +152,63 @@ namespace movieMeta
             if (fi.Exists)
             {
                 mmdata.load(di + "\\mymovies.xml");
-                LocalTitle.Text = mmdata.LocalTitle;
-                OriginalTitle.Text = mmdata.OriginalTitle;
-                SortTitle.Text = mmdata.SortTitle;
-                ProductionYear.Text = mmdata.ProductionYear;
-                Runtime.Text = mmdata.RunningTime;
-                MPAARating.Text = mmdata.MPAARating;
-                IMDBRating.Text = mmdata.IMDBrating;
-                AspectRatio.Text = mmdata.AspectRatio;
-                MovieType.Text = mmdata.Type;
-                DateAdded.Value = DateTime.Parse(mmdata.Added);
-                IMDB.Text = mmdata.IMDB;
-                toolTip1.SetToolTip(imdbgo, "http://www.imdb.com/title/" + mmdata.IMDB + "/");
-                TMDBID.Text = mmdata.TMDbId;
-                toolTip1.SetToolTip(tmdbgo, "http://www.themoviedb.org/movie/" + mmdata.TMDbId);
-                Description.Text = mmdata.Description;
-                foreach (string g in mmdata.Genres.Genre)
-                {
-                    Genres.Rows.Add(g);
-
-                }
-                foreach (string s in mmdata.Studios.Studio)
-                {
-                   
-                    int row = Studios.Rows.Add(s);
-
-
-                }
-                foreach (mymovies.Person p in mmdata.Persons)
-                {
-                    if (p.Type.ToLower() == "director") { Directors.Rows.Add(p.Name); }
-                    if (p.Type.ToLower() == "actor")
-                    {
-                        System.Drawing.Image img;
-
-                        string imgbyname = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\ImagesByName\\" + p.Name + "\\folder.jpg";
-                        fi = new FileInfo(imgbyname);
-                        if (fi.Exists)
-                        {
-                            img = new Bitmap(imgbyname);
-
-                        }
-                        else
-                        {
-                            img = new Bitmap(1, 1);
-                        }
-
-                        Actors.Rows.Add(img, p.Name, "..as ", p.Role, " ");
-                    }
-                }
             }
             else 
-            { 
+            {
+                mmdata = new mymovies(di + "\\mymovies.xml");
+                mmdata.Added = DateTime.Now.ToString("yyy-MM-dd h:mm:ss tt");
+                mmdata.LocalTitle = MovieList[0, e.RowIndex].Value.ToString();
+                mmdata.OriginalTitle = MovieList[0, e.RowIndex].Value.ToString();
+                mmdata.SortTitle = MovieList[5, e.RowIndex].Value.ToString();
+                
             }
-            
+            LocalTitle.Text = mmdata.LocalTitle;
+            OriginalTitle.Text = mmdata.OriginalTitle;
+            SortTitle.Text = mmdata.SortTitle;
+            ProductionYear.Text = mmdata.ProductionYear;
+            Runtime.Text = mmdata.RunningTime;
+            MPAARating.Text = mmdata.MPAARating;
+            IMDBRating.Text = mmdata.IMDBrating;
+            AspectRatio.Text = mmdata.AspectRatio;
+            MovieType.Text = mmdata.Type;
+            DateAdded.Value = DateTime.Parse(mmdata.Added);
+            IMDB.Text = mmdata.IMDB;
+            toolTip1.SetToolTip(imdbgo, "http://www.imdb.com/title/" + mmdata.IMDB + "/");
+            TMDBID.Text = mmdata.TMDbId;
+            toolTip1.SetToolTip(tmdbgo, "http://www.themoviedb.org/movie/" + mmdata.TMDbId);
+            Description.Text = mmdata.Description;
+            foreach (string g in mmdata.Genres.Genre)
+            {
+                Genres.Rows.Add(g);
+
+            }
+            foreach (string s in mmdata.Studios.Studio)
+            {
+
+                int row = Studios.Rows.Add(s);
+            }
+            foreach (mymovies.Person p in mmdata.Persons)
+            {
+                if (p.Type.ToLower() == "director") { Directors.Rows.Add(p.Name); }
+                if (p.Type.ToLower() == "actor")
+                {
+                    System.Drawing.Image img;
+
+                    string imgbyname = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\ImagesByName\\" + p.Name + "\\folder.jpg";
+                    fi = new FileInfo(imgbyname);
+                    if (fi.Exists)
+                    {
+                        img = new Bitmap(imgbyname);
+
+                    }
+                    else
+                    {
+                        img = new Bitmap(1, 1);
+                    }
+
+                    Actors.Rows.Add(img, p.Name, "..as ", p.Role, " ");
+                }
+            }            
 
             fi = new FileInfo(di + "\\folder.jpg");
             if (fi.Exists)
@@ -393,11 +401,11 @@ namespace movieMeta
         {
             if (e.ColumnIndex == 1)
             {
-                dgv_reorder((DataGridView)sender, e.RowIndex, "up");
+                dgv_moverowUp((DataGridView)sender, e.RowIndex);
             }
             if (e.ColumnIndex == 2)
             {
-                dgv_reorder((DataGridView)sender, e.RowIndex, "down");
+                dgv_moverowDown((DataGridView)sender, e.RowIndex);
             }
         }
 
@@ -406,26 +414,34 @@ namespace movieMeta
 
         }
 
-        private void dgv_reorder(DataGridView dgv, int row, String movetype)
+        private void dgv_moverowUp(DataGridView dgv, int row)
         {
             DataGridViewRow dgr;
             dgr = dgv.Rows[row];
-            if ((movetype == "up") && (row > 0))
+            if (row > 0)
             {
                 dgv.Rows.RemoveAt(row);
                 dgv.Rows.Insert(row - 1, dgr);
 
                 dgv.Rows[row - 1].Selected = true;
             }
-            if ((movetype == "down") && (row < dgv.Rows.Count - 2))
+
+
+        }
+
+        private void dgv_moverowDown(DataGridView dgv, int row)
+        {
+            DataGridViewRow dgr;
+            dgr = dgv.Rows[row];
+            if (row < dgv.Rows.Count - 2)
             {
                 dgv.Rows.RemoveAt(row);
                 dgv.Rows.Insert(row + 1, dgr);
 
                 dgv.Rows[row + 1].Selected = true;
             }
-        }
 
+        }
         private void mainWindow_Load(object sender, EventArgs e)
         {
             //Image nullImage = 
@@ -443,11 +459,11 @@ namespace movieMeta
         {
             if (e.ColumnIndex == 5)
             {
-                dgv_reorder((DataGridView)sender, e.RowIndex, "up");
+                dgv_moverowUp((DataGridView)sender, e.RowIndex);
             }
             if (e.ColumnIndex == 6)
             {
-                dgv_reorder((DataGridView)sender, e.RowIndex, "down");
+                dgv_moverowDown((DataGridView)sender, e.RowIndex);
             }
         }
     }
